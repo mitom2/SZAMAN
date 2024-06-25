@@ -1,0 +1,40 @@
+.define MEM_port           %10111100
+.define MEM_pages          #16390
+.define MEM_page_lower     #16390
+.define MEM_page_upper     #16391
+
+.macro MEM_switch_page  ;Memory bank in C, new page number in B. Invalidates AC.
+    DI
+    LD A,C
+    CP #2
+    JR Z,#11
+    ADD A,MEM_port
+    LD C,A
+    OUT (C),B
+    LD A,B
+    LD (MEM_page_lower),A
+    JR #9
+    ADD A,MEM_port
+    LD C,A
+    OUT (C),B
+    LD A,B
+    LD (MEM_page_upper),A
+    EI
+.endmacro
+
+.macro MEM_system_os_switch_page  ;Memory bank in C, new page number in B. Invalidates AC.
+    LD A,C
+    CP #2
+    JR Z,#11
+    ADD A,MEM_port
+    LD C,A
+    OUT (C),B
+    LD A,B
+    LD (MEM_page_lower),A
+    JR #9
+    ADD A,MEM_port
+    LD C,A
+    OUT (C),B
+    LD A,B
+    LD (MEM_page_upper),A
+.endmacro
