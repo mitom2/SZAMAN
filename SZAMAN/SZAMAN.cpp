@@ -1426,7 +1426,7 @@ void preprocessing(std::string instruction, std::unordered_map<std::string, std:
 	}
 }
 
-void assemble(std::vector<CodeLine>& code, std::vector<char>& bytecode, std::size_t startingPos, bool showbadcode)
+void assemble(std::vector<CodeLine>& code, std::vector<char>& bytecode, std::size_t startingPos, bool showbadcode, bool beg0)
 {
 	std::unordered_map<std::string, uint16_t> labels;
 	std::list<std::pair<std::size_t, uint16_t>> missingLabels;
@@ -1560,9 +1560,27 @@ void assemble(std::vector<CodeLine>& code, std::vector<char>& bytecode, std::siz
 			}
 		}
 	}
+	if (beg0 == true)
+	{
+		bool startMov = false;
+		std::size_t offsetMov = 0;
+		for (std::size_t i = 0; i < bytecode.size(); i++)
+		{
+			if (bytecode[i] != 0)
+				startMov = true;
+			else
+			{
+				offsetMov++;
+				continue;
+			}
+			if (startMov == false)
+				continue;
+			bytecode[i - offsetMov] = bytecode[i];
+		}
+	}
 }
 
-void run(std::string& in, std::string& out, std::string& mem, std::string& startingPos, bool showbadcode)
+void run(std::string& in, std::string& out, std::string& mem, std::string& startingPos, bool showbadcode, bool beg0)
 {
 	std::size_t sPos = 0;
 	try
@@ -1604,7 +1622,7 @@ void run(std::string& in, std::string& out, std::string& mem, std::string& start
 
 		if (loadFromFile(in, code) == true)
 		{
-			assemble(code, bytecode, std::stoi(startingPos), showbadcode);
+			assemble(code, bytecode, std::stoi(startingPos), showbadcode, beg0);
 			std::ofstream save(out, std::ios::binary);
 			if (save.good() == false)
 			{
@@ -1648,6 +1666,7 @@ int main(int argc, char *argv[])
 	std::string mem = "64k";
 	std::string sPos = "0";
 	bool showbadcode = false;
+	bool beg0 = false;
 	for (int i = 0; i < argc; i++)
 	{
 		if ((std::string(argv[i]) == "-i") && (i + 1 < argc))
@@ -1670,8 +1689,12 @@ int main(int argc, char *argv[])
 		{
 			showbadcode = true;
 		}
+		else if (std::string(argv[i]) == "-alwaysbeginat0")
+		{
+			beg0 = true;
+		}
 	}
 	if ((in != "") && (out != ""))
-		run(in, out, mem, sPos, showbadcode);
+		run(in, out, mem, sPos, showbadcode, beg0);
 	return 0;
 }

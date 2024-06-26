@@ -1,0 +1,19 @@
+.include gpu.ia
+.org %1000000000000000
+LD B,%00110010
+GPU_setColor
+LD B,#80
+GPU_drawChar
+LD B,#114
+GPU_drawChar
+LD B,#111
+GPU_drawChar
+LD B,#99
+GPU_drawChar
+LD B,#45
+GPU_drawChar
+LD B,#51
+GPU_drawChar
+@proc3Loop
+HALT
+JP @proc3Loop

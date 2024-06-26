@@ -7,7 +7,7 @@ JP @osBootSequence
 
 ;Task table:
 ;[0] 8-bit PID
-;[1] 8-bit state (0 - ready, 1 - waiting for I/O, 2 - waiting for another process, 3 - sleeping, 4 - concluded)
+;[1] 8-bit state (0 - ready, 1 - waiting for I/O, 2 - waiting for another process, 3 - sleeping, 4 - starting, 5 - concluded)
 ;[2] 8-bit A
 ;[3] 8-bit F
 ;[4] 8-bit B
@@ -19,9 +19,10 @@ JP @osBootSequence
 ;[10&11] 16-bit SP
 ;[12&13] 16-bit IX
 ;[14&15] 16-bit IY
-;[16&17] 16-bit active memory pages in upper half of address space (top bank is in 17, bottom bank in 16)
+;[16&17] 16-bit active memory pages in upper half of address space (top bank is in 17, bottom bank in 16). 0 Means that no page is selected.
 ;[18] 8-bit gpu selected color
 
+.define system_os_next_free_PID         #16388
 .define system_os_i_buffer              #16392
 .define system_os_ix_buffer             #16394
 .define system_os_last_task_offset      #16396
@@ -57,6 +58,9 @@ JP @osBootSequence
 .define system_os_keyboard_handler_buffer_1 #23572
 
 .define system_os_task_selector_ctr_1    #23574
+
+;Unused memory pages will be != 0. Size of this container is always equal to 64 (total number of pages)
+.define system_os_free_pages_front       #23576
 
 .macro system_os_tasks
     ;TODO
@@ -221,7 +225,7 @@ raw @osBeginIntHandler
             LD C,#1
             MEM_system_os_switch_page
             LD B,(IX+#17)
-            INC C
+            LD C,#2
             MEM_system_os_switch_page
             LD C,(IX+#3)
             PUSH BC
@@ -272,13 +276,16 @@ raw @osBeginIntHandler
 .macro system_os_signal_io_data_input   ;Owner PID in A. Invalidates A and A' (!!!).
             PUSH HL
             LD HL,system_os_task_table_front
-            DEC HL
-            INC HL
+            AND A   ;Clear C flag
+            SBC HL,DE
+            ADD HL,DE
             CP (HL)
             JR NZ,%11111100
             XOR A
             INC HL
             LD A,(HL)
+            LD (HL),#0
+            INC HL
             LD (HL),#0
             CP #1
             JR NZ,#3
@@ -504,8 +511,10 @@ raw @osBeginIntHandler
     POP AF
     LD HL,system_os_disk_input_owner
     CP (HL)
-    JR Z,#3
+    JR Z,#6
     CALL @osRequestWaitIO
+    DI
+    JR %11101001
     DI
 .endmacro
 
@@ -608,17 +617,126 @@ raw @osBeginIntHandler
     JR %11110000
 .endmacro
 
+;Requires sector number in (MSB)HLDE(LSB), offset in BC and 16b size on top of the stack. Invalidates all registers. Reserves disk (which needs to be freed outside of this function)
+@osNewProcess
+    PUSH BC
+    system_os_reserve_disk
+    DI
+@osNewProcessSeekFreePage
+    LD HL,system_os_free_pages_front
+    DEC HL
+    LD C,#64
+@osNewProcessLoop
+    INC HL
+    DEC C
+    LD A,(HL)
+    CP #0
+    JP NZ,@osNewProcessPageFound
+    XOR A
+    CP C
+    JP Z,@osNewProcessNoFreePages
+    JP @osNewProcessLoop
+@osNewProcessNoFreePages
+    EI
+    HALT
+    DI
+    JP @osNewProcessSeekFreePage
+@osNewProcessPageFound
+    LD (HL),#0
+    LD HL,system_os_task_table_front
+    cpu_hl_to_bc
+    LD HL,(system_os_last_task_offset)
+    ADD HL,BC
+    LD DE,#19
+    ADD HL,DE
+    PUSH AF
+    LD A,(system_os_next_free_PID)
+    LD (HL),A
+    INC A
+    LD (system_os_next_free_PID),A
+    INC HL
+    LD (HL),#4
+    LD BC,#9
+    ADD HL,BC
+    LD (HL),%11111110
+    INC HL
+    LD (HL),%10111111
+    POP AF
+    LD DE,#5
+    ADD HL,DE
+    LD (HL),A
+    INC HL
+    LD (HL),#0
+    LD HL,(system_os_task_table_sizeLSB)
+    LD DE,#19
+    ADD HL,DE
+    LD (system_os_task_table_sizeLSB),HL
+    PUSH AF
+    system_os_wait_disk
+    POP AF
+    LD B,A
+    LD C,#1
+    LD (MEM_page_lower),A
+    PUSH AF
+    MEM_system_os_switch_page
+    LD HL,%1000000000000000
+    LD (%1011111111111110),HL
+    POP AF
+    LD HL,system_os_disk_input_front
+    POP BC
+    ADD HL,BC
+    POP DE  ;Remember about return address from the function!
+    POP BC
+    PUSH DE
+    LD DE,%1000000000000000
+    LDIR
+    PUSH AF
+    LD HL,system_os_task_table_front
+    LD DE,#19
+    LD A,(system_os_next_free_PID)
+    DEC A
+    CP (HL)
+    JR Z,#3
+    ADD HL,DE
+    JR %11111010
+    INC HL
+    LD (HL),#0
+    POP AF
+    LD B,A
+    LD C,#1
+    MEM_system_os_switch_page
+    RET
+
+.macro system_os_no_ei_new_process  ;Requires sector number in (MSB)HLDE(LSB), offset in BC and 16b size on top of the stack. Invalidates all registers.
+    CALL @osNewProcess
+    system_os_free_disk
+    DI
+.endmacro
+
+.macro system_os_new_process    ;Requires sector number in (MSB)HLDE(LSB), offset in BC and 16b size on top of the stack. Invalidates all registers.
+    DI
+    system_os_no_ei_new_process
+    EI
+.endmacro
+
 @osBootSequence
             ;Initialize memory
             LD C,#0
             LD B,#0
             MEM_system_os_switch_page
-            INC B
             INC C
             MEM_system_os_switch_page
-            INC B
             INC C
             MEM_system_os_switch_page
+            XOR A
+            LD HL,system_os_free_pages_front
+            LD C,#65
+            INC A
+            CP C
+            JR Z,#4
+            LD (HL),A
+            INC HL
+            JR %11111000
 
             ;Prepare interrupts
             DI
@@ -627,7 +745,7 @@ raw @osBeginIntHandler
             LD I,A
 
             ;Prepare OS stack
-            LD      SP,%0111111111111111
+            LD      SP,%1000000000000000
 
             ;Create boot process entry in table with PID=1
             LD (system_os_foreground_process_PID),A
@@ -644,6 +762,8 @@ raw @osBeginIntHandler
             LD A,E
             LD (system_os_task_table_sizeLSB),A
             EXX
+            LD A,#2
+            LD (system_os_next_free_PID),A
 
             ;Initialize disk queue
             XOR A
@@ -741,6 +861,28 @@ raw @osBeginIntHandler
             JP      Z,@osBootSequenceKeyboardLoop
             LD      B,A
             GPU_drawChar
+            CP      #33
+            JP      Z,@osBootSequenceNewProc2
+            CP      #63
+            JP      Z,@osBootSequenceNewProc3
+            JP      @osBootSequenceKeyboardLoop
+
+@osBootSequenceNewProc2
+            LD HL,#0
+            LD DE,#1
+            LD BC,#512
+            PUSH BC
+            LD BC,#0
+            system_os_new_process
+            JP      @osBootSequenceKeyboardLoop
+
+@osBootSequenceNewProc3
+            LD HL,#0
+            LD DE,#2
+            LD BC,#512
+            PUSH BC
+            LD BC,#0
+            system_os_new_process
             JP      @osBootSequenceKeyboardLoop
 
 .org %1000000000000000
