@@ -42,6 +42,31 @@ run(inputPath, outputPath, memory, startingPos, showBadCode, alwaysBeginAt0);
 
 Code presented above will assemble code from file input.z80 into machine code, which will be saved to output.bin. Memory of the target device is specified as 16k and error messages are set to also display erroneous code with them.
 
+## Preprocessor instructions
+
+This is a list of all preprocessor instructions with their descriptions:
+- .include includes contents of another file. Each file may be included only once, otherwise error is generated.
+- .define allows to associate a specific number with a text, essentially creating a constant.
+- .macro is used to create a portion of assembly code that will be inserted each time the name is found inside the code. Immediately following .macro must be unique name, after which in new line assembly code may be written.
+- .endmacro closes .macro definition. Keep in mind that macros may not be recursive.
+- .org moves the bytecode generation to the specified address.
+- .var, followed by word or byte, is used to create a new variable. Name must follow.
+- .new is equivalent to .var and is also used to create a new variable.
+- .memclr, followed by number, removes specified amount of last variables.
+- .free is equivalent to .var and is also used to remove specified amount of last variables.
+
+## Expected Input
+
+This assembler expects assembly code with some differences when compared to other Z80 assemblers:
+- Only one instruction may be present in each line.
+- Labels must begin with '@' character.
+- Label definitions should not be concluded with ':' character.
+- JR instructions must specify offset (labels can not be used)
+- Base for numbers is chosen by preceding number with '%' (binary), '#' (decimal), or '$' (hexadecimal) character.
+- All numbers must have base specified, even when using decimal.
+- Instead of typical ORG, .org macro should be used.
+- In order to insert a specific non-instuction number into the bytecode (for example when creating interrupt vector with addresses of handling procedures) RAW instruction can be used. It can be used with both numbers and labels.
+
 ## Error and Warning Codes
 
 This section contains descriptions of possible error and warning codes. It is not guaranteed to be a complete list.
