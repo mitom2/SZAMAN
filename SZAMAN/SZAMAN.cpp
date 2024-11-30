@@ -8,6 +8,11 @@
 #include <fstream>
 #include <cctype>
 
+/// <summary>
+/// Initializes vector of bytes with zeros.
+/// </summary>
+/// <param name="vec">Reference to the vector</param>
+/// <param name="memSize">Target size</param>
 void initializeBytecodeVector(std::vector<char>& vec, std::size_t memSize)
 {
 	for (std::size_t i = 0; i < memSize; i++)
@@ -16,8 +21,20 @@ void initializeBytecodeVector(std::vector<char>& vec, std::size_t memSize)
 	}
 }
 
+/// <summary>
+/// Counter of errors.
+/// </summary>
 int errCnt = 0;
 
+/// <summary>
+/// Displays error using console.
+/// </summary>
+/// <param name="msg">Error message</param>
+/// <param name="code">Error code</param>
+/// <param name="line">Line where the error occured</param>
+/// <param name="file">File in which the error occured</param>
+/// <param name="showbadcode">Switch used to display erroneous assembly code</param>
+/// <param name="badCode">Erroneous assembly code</param>
 void displayError(std::string msg, std::string code, std::size_t line, std::string file, bool showbadcode, std::string badCode="")
 {
 	errCnt++;
@@ -27,6 +44,11 @@ void displayError(std::string msg, std::string code, std::size_t line, std::stri
 		std::cout << "[ERR " << code << "] [" << file << "] [" << std::to_string(line) << "] " << msg << ":\n\t" << badCode << "\n";
 }
 
+/// <summary>
+/// Converts text to lowercase.
+/// </summary>
+/// <param name="text">Text to be converted</param>
+/// <returns>Lowercase text</returns>
 std::string lowercase(std::string text)
 {
 	for (std::size_t i = 0; i < text.length(); i++)
@@ -36,6 +58,18 @@ std::string lowercase(std::string text)
 	return text;
 }
 
+/// <summary>
+/// Performs intial assembly step - line formatting.
+/// </summary>
+/// <param name="code">Code to be processed</param>
+/// <param name="line">Origin line</param>
+/// <param name="label">This bool is set to true if label was encountered</param>
+/// <param name="labelTxt">This string is set to the name of the encountered label</param>
+/// <param name="labelDeclared">This bool is set to true if label was declared</param>
+/// <param name="preprocessor">This bool is set to true if preprocessor instruction was encountered</param>
+/// <param name="file">Origin file</param>
+/// <param name="showbadcode">Set true to display erroneous assembly code in error messages</param>
+/// <returns></returns>
 uint16_t formatCode(std::string& code, std::size_t& line, bool& label, std::string& labelTxt, bool& labelDeclared, bool& preprocessor, std::string& file, bool showbadcode)
 {
 	bool finished = false;
@@ -218,6 +252,9 @@ uint16_t formatCode(std::string& code, std::size_t& line, bool& label, std::stri
 	return removedNumber;
 }
 
+/// <summary>
+/// This struct holds information about a single line of assembly code.
+/// </summary>
 struct CodeLine
 {
 	std::string text;
@@ -226,6 +263,9 @@ struct CodeLine
 	uint16_t removedNumber;
 };
 
+/// <summary>
+/// This unordered map contains all information necessary for machine code generation.
+/// </summary>
 std::unordered_map<std::string, std::pair<uint32_t, uint8_t>> opcodes = {
 		{"ld a,a", { 0b01111111, 255 } },
 		{"ld a,b", { 0b01111000, 255 } },
@@ -1099,6 +1139,15 @@ std::unordered_map<std::string, std::pair<uint32_t, uint8_t>> opcodes = {
 		{ "raw n", { 0 , 254 } }
 };
 
+/// <summary>
+/// Inserts macros.
+/// </summary>
+/// <param name="code">Assembly code</param>
+/// <param name="defines">Map of defines</param>
+/// <param name="codePos">Current position in code</param>
+/// <param name="line">Origin line</param>
+/// <param name="file">Origin file</param>
+/// <param name="showbadcode">Set true to show show erroneous code in error messages</param>
 void insertDefines(std::vector<CodeLine>& code, std::unordered_map<std::string, std::vector<std::string>>& defines, std::size_t codePos, std::size_t line, std::string& file, bool showbadcode)
 {
 	std::string buf = lowercase(code[codePos].text);
@@ -1158,6 +1207,17 @@ void insertDefines(std::vector<CodeLine>& code, std::unordered_map<std::string, 
 		insertDefines(code, defines, codePos, line, file, showbadcode); //In case a macro was present in inserted one
 }
 
+/// <summary>
+/// Inserts variables.
+/// 
+/// WARNING: VARIABLES CURRENTLY NOT WORKING AS EXPECTED
+/// </summary>
+/// <param name="code">Assembly code</param>
+/// <param name="variables">Vector of variables</param>
+/// <param name="codePos">Current position in code</param>
+/// <param name="line">Origin line</param>
+/// <param name="file">Origin file</param>
+/// <param name="showbadcode">Set true to show show erroneous code in error messages</param>
 void insertVariables(std::vector<CodeLine>& code, std::vector<std::pair<std::string, int>>& variables, std::size_t codePos, std::size_t line, std::string& file, bool showbadcode)
 {
 	std::string buf = lowercase(code[codePos].text);
@@ -1206,6 +1266,12 @@ void insertVariables(std::vector<CodeLine>& code, std::vector<std::pair<std::str
 	}
 }
 
+/// <summary>
+/// Loads code from file.
+/// </summary>
+/// <param name="path">Path to file</param>
+/// <param name="code">Result code</param>
+/// <returns>True if loaded, false otherwise</returns>
 bool loadFromFile(std::string path, std::vector<CodeLine>& code)
 {
 	std::ifstream load(path);
@@ -1233,6 +1299,11 @@ bool loadFromFile(std::string path, std::vector<CodeLine>& code)
 	return true;
 }
 
+/// <summary>
+/// Prepare instruction for preprocessor.
+/// </summary>
+/// <param name="instruction">Instruction</param>
+/// <returns>Prepared vector</returns>
 std::vector<std::string> preprocessingDividor(std::string instruction)
 {
 	std::vector<std::string> res;
@@ -1257,8 +1328,19 @@ std::vector<std::string> preprocessingDividor(std::string instruction)
 	return res;
 }
 
+/// <summary>
+/// List of included files.
+/// </summary>
 std::unordered_map<std::string, bool> includedFiles;
 
+/// <summary>
+/// Converts number in specified base to long.
+/// </summary>
+/// <param name="value">Text containing a number</param>
+/// <param name="line">Origin line</param>
+/// <param name="file">Origin file</param>
+/// <param name="showbadcode">Set true to show show erroneous code in error messages</param>
+/// <returns>Converted number</returns>
 unsigned long toLong(std::string& value, std::size_t& line, std::string& file, bool showbadcode)
 {
 	if (value.length() == 0)
@@ -1311,6 +1393,18 @@ unsigned long toLong(std::string& value, std::size_t& line, std::string& file, b
 	return result;
 }
 
+/// <summary>
+/// Executes preprocessor instruction.
+/// </summary>
+/// <param name="instruction">Instruction</param>
+/// <param name="defines">Map of defines</param>
+/// <param name="code">Assembly code</param>
+/// <param name="line">Origin line</param>
+/// <param name="file">Origin file</param>
+/// <param name="pos">Position in code</param>
+/// <param name="bytePos">Position in byte code</param>
+/// <param name="variables">Vector of variables</param>
+/// <param name="showbadcode">Set true to show show erroneous code in error messages</param>
 void preprocessing(std::string instruction, std::unordered_map<std::string, std::vector<std::string>>& defines, std::vector<CodeLine>& code, std::size_t& line, std::string& file, std::size_t& pos, std::size_t& bytePos, std::vector<std::pair<std::string, int>>& variables, bool showbadcode)
 {
 	std::vector<std::string> data = preprocessingDividor(instruction);
@@ -1426,6 +1520,14 @@ void preprocessing(std::string instruction, std::unordered_map<std::string, std:
 	}
 }
 
+/// <summary>
+/// Assembles code.
+/// </summary>
+/// <param name="code">Code</param>
+/// <param name="bytecode">Result machine code</param>
+/// <param name="startingPos">Starting position</param>
+/// <param name="showbadcode">Set true to show show erroneous code in error messages</param>
+/// <param name="beg0">Set to true if -alwaysbeginat0 was set</param>
 void assemble(std::vector<CodeLine>& code, std::vector<char>& bytecode, std::size_t startingPos, bool showbadcode, bool beg0)
 {
 	std::unordered_map<std::string, uint16_t> labels;
@@ -1580,6 +1682,15 @@ void assemble(std::vector<CodeLine>& code, std::vector<char>& bytecode, std::siz
 	}
 }
 
+/// <summary>
+/// Run program.
+/// </summary>
+/// <param name="in">Input file path</param>
+/// <param name="out">Output file path</param>
+/// <param name="mem">Target device memory size</param>
+/// <param name="startingPos">Starting position</param>
+/// <param name="showbadcode">Set true to show show erroneous code in error messages</param>
+/// <param name="beg0">Set to true if -alwaysbeginat0 was set</param>
 void run(std::string& in, std::string& out, std::string& mem, std::string& startingPos, bool showbadcode, bool beg0)
 {
 	std::size_t sPos = 0;
@@ -1659,6 +1770,11 @@ void run(std::string& in, std::string& out, std::string& mem, std::string& start
 	}
 }
 
+/// <summary>
+/// Main function - entry point for the app.
+/// </summary>
+/// <param name="argc">Number of program arguments</param>
+/// <param name="argv">Program arguments</param>
 int main(int argc, char *argv[])
 {
 	std::string in = "";
