@@ -20,7 +20,7 @@ Copy the SZAMAN/SZAMAN.cpp file. Include it inside your code. If you do not wish
 ./SZAMAN -i input.z80 -o output.bin
 ```
 
-Code presented above will assemble code from file input.z80 into machine code, which will be saved to output.bin
+Command presented above will assemble code from file input.z80 into machine code, which will be saved to output.bin
 
 Additional options are available:
 - -m can be used to set memory limit of target device. Allowed values: 1k, 2k, 4k, 8k, 16k, 32k, 64k. Default is 64k.
@@ -42,7 +42,7 @@ run(inputPath, outputPath, memory, startingPos, showBadCode, alwaysBeginAt0);
 
 Code presented above will assemble code from file input.z80 into machine code, which will be saved to output.bin. Memory of the target device is specified as 16k and error messages are set to also display erroneous code with them.
 
-## Preprocessor instructions
+## Preprocessor Instructions
 
 This is a list of all preprocessor instructions with their descriptions:
 - .include includes contents of another file. Each file may be included only once, otherwise error is generated.
