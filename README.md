@@ -12,15 +12,22 @@ This project provides a basic assembly compiler written in C++ for Z80 MPU that 
 
 
 ## Run Locally
-Copy the SZAMAN/SZAMAN.cpp file. Include it inside your code. If you do not wish to use built-in main function, simply delete it. And that's it!
+Clone the project
+```bash
+git clone https://github.com/mitom2/SZAMAN.git
+cd SZAMAN
+mkdir build
+cd build
+cmake ..
+make
+```
+
 ## Usage
 
 #### From console
 ```bash
-./SZAMAN -i input.z80 -o output.bin
+./SZAMAN -i [input file] -o [output file]
 ```
-
-Command presented above will assemble code from file input.z80 into machine code, which will be saved to output.bin
 
 Additional options are available:
 - -m can be used to set memory limit of target device. Allowed values: 1k, 2k, 4k, 8k, 16k, 32k, 64k. Default is 64k.
@@ -37,7 +44,7 @@ std::string startingPos = "0";
 bool showBadCode = true;
 bool alwaysBeginAt0 = false;
 
-run(inputPath, outputPath, memory, startingPos, showBadCode, alwaysBeginAt0);
+szaman::run(inputPath, outputPath, memory, startingPos, showBadCode, alwaysBeginAt0);
 ```
 
 Code presented above will assemble code from file input.z80 into machine code, which will be saved to output.bin. Memory of the target device is specified as 16k and error messages are set to also display erroneous code with them.
@@ -58,13 +65,12 @@ This is a list of all preprocessor instructions with their descriptions:
 ## Expected Input
 
 This assembler expects assembly code with some differences when compared to other Z80 assemblers:
-- Only one instruction may be present in each line.
 - Labels must begin with '@' character.
 - Label definitions should not be concluded with ':' character.
 - JR instructions must specify offset (labels can not be used)
 - Base for numbers is chosen by preceding number with '%' (binary), '#' (decimal), or '$' (hexadecimal) character.
 - All numbers must have base specified, even when using decimal.
-- Instead of typical ORG, .org macro should be used.
+- Instead of typical ORG, .org is to be be used.
 - In order to insert a specific non-instuction number into the bytecode (for example when creating interrupt vector with addresses of handling procedures) RAW instruction can be used. It can be used with both numbers and labels.
 
 ## Error and Warning Codes
