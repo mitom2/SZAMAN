@@ -12,7 +12,6 @@ This project provides a basic assembly compiler written in C++ for Z80 MPU that 
 
 
 ## Run Locally
-Clone the project
 ```bash
 git clone https://github.com/mitom2/SZAMAN.git
 cd SZAMAN
