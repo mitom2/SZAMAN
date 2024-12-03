@@ -36,6 +36,8 @@ Additional options are available:
 
 #### From C++ code
 ```c++
+#include "SZAMAN.hpp"
+
 std::string inputPath = "input.z80";
 std::string outputPath = "output.bin";
 std::string memory = "16k";
