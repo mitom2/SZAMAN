@@ -56,12 +56,12 @@ This is a list of all preprocessor instructions with their descriptions:
 - .include includes contents of another file. Each file may be included only once, otherwise error is generated.
 - .define allows to associate a specific number with a text, essentially creating a constant.
 - .macro is used to create a portion of assembly code that will be inserted each time the name is found inside the code. Immediately following .macro must be unique name, after which in new line assembly code may be written.
-- .endmacro closes .macro definition. Keep in mind that macros may not be recursive.
+- .endmacro closes .macro definition. Keep in mind that macros can not be recursive.
 - .org moves the bytecode generation to the specified address.
 - .var, followed by word or byte, is used to create a new variable. Name must follow.
 - .new is equivalent to .var and is also used to create a new variable.
 - .memclr, followed by number, removes specified amount of last variables.
-- .free is equivalent to .var and is also used to remove specified amount of last variables.
+- .free is equivalent to .memclr and is also used to remove specified amount of last variables.
 
 ## Expected Input
 
