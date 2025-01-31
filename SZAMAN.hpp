@@ -100,17 +100,10 @@ namespace szaman
 			}
 			if (labelExtraction == true)
 			{
-				if (code[i] == ';')
+				if (code[i] == ';' || code[i] == ' ' || code[i] == '\t')
 				{
 					labelExtraction = false;
 					finished = true;
-					code.erase(i, 1);
-					i--;
-					continue;
-				}
-				else if (code[i] == ' ' || code[i] == '\t')
-				{
-					std::cout << "[WRN 004] [" << std::to_string(line) << "] Forbidden character inside label name.\n";
 					code.erase(i, 1);
 					i--;
 					continue;

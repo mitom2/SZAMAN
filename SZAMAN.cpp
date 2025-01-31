@@ -1,8 +1,9 @@
 #include <iostream>
 #include "SZAMAN.hpp"
 
-int main(int argc, char** argv){
-    std::string in = "";
+int main(int argc, char **argv)
+{
+	std::string in = "";
 	std::string out = "";
 	std::string mem = "64k";
 	std::string sPos = "0";
