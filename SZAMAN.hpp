@@ -17,7 +17,7 @@ namespace szaman
 	/// </summary>
 	/// <param name="vec">Reference to the vector</param>
 	/// <param name="memSize">Target size</param>
-	void initializeBytecodeVector(std::vector<char> &vec, std::size_t memSize)
+	inline void initializeBytecodeVector(std::vector<char> &vec, std::size_t memSize)
 	{
 		for (std::size_t i = 0; i < memSize; i++)
 		{
@@ -28,7 +28,7 @@ namespace szaman
 	/// <summary>
 	/// Counter of errors.
 	/// </summary>
-	int errCnt = 0;
+	static int errCnt = 0;
 
 	/// <summary>
 	/// Displays error using console.
@@ -39,7 +39,7 @@ namespace szaman
 	/// <param name="file">File in which the error occured</param>
 	/// <param name="showbadcode">Switch used to display erroneous assembly code</param>
 	/// <param name="badCode">Erroneous assembly code</param>
-	void displayError(std::string msg, std::string code, std::size_t line, std::string file, bool showbadcode, std::string badCode = "")
+	inline void displayError(std::string msg, std::string code, std::size_t line, std::string file, bool showbadcode, std::string badCode = "")
 	{
 		errCnt++;
 		if (showbadcode == false)
@@ -53,7 +53,7 @@ namespace szaman
 	/// </summary>
 	/// <param name="text">Text to be converted</param>
 	/// <returns>Lowercase text</returns>
-	std::string lowercase(std::string text)
+	inline std::string lowercase(std::string text)
 	{
 		for (std::size_t i = 0; i < text.length(); i++)
 		{
@@ -74,7 +74,7 @@ namespace szaman
 	/// <param name="file">Origin file</param>
 	/// <param name="showbadcode">Set true to display erroneous assembly code in error messages</param>
 	/// <returns></returns>
-	uint16_t formatCode(std::string &code, std::size_t &line, bool &label, std::string &labelTxt, bool &labelDeclared, bool &preprocessor, std::string &file, bool showbadcode)
+	inline uint16_t formatCode(std::string &code, std::size_t &line, bool &label, std::string &labelTxt, bool &labelDeclared, bool &preprocessor, std::string &file, bool showbadcode)
 	{
 		bool finished = false;
 		bool removeSpace = true;
@@ -270,7 +270,7 @@ namespace szaman
 	/// <summary>
 	/// This unordered map contains all information necessary for machine code generation.
 	/// </summary>
-	std::unordered_map<std::string, std::pair<uint32_t, uint8_t>> opcodes = {
+	static std::unordered_map<std::string, std::pair<uint32_t, uint8_t>> opcodes = {
 		{"ld a,a", {0b01111111, 255}},
 		{"ld a,b", {0b01111000, 255}},
 		{"ld a,c", {0b01111001, 255}},
@@ -1151,7 +1151,7 @@ namespace szaman
 	/// <param name="line">Origin line</param>
 	/// <param name="file">Origin file</param>
 	/// <param name="showbadcode">Set true to show show erroneous code in error messages</param>
-	void insertDefines(std::vector<CodeLine> &code, std::unordered_map<std::string, std::vector<std::string>> &defines, std::size_t codePos, std::size_t line, std::string &file, bool showbadcode)
+	inline void insertDefines(std::vector<CodeLine> &code, std::unordered_map<std::string, std::vector<std::string>> &defines, std::size_t codePos, std::size_t line, std::string &file, bool showbadcode)
 	{
 		std::string buf = lowercase(code[codePos].text);
 		bool inserted = false;
@@ -1221,7 +1221,7 @@ namespace szaman
 	/// <param name="line">Origin line</param>
 	/// <param name="file">Origin file</param>
 	/// <param name="showbadcode">Set true to show show erroneous code in error messages</param>
-	void insertVariables(std::vector<CodeLine> &code, std::vector<std::pair<std::string, int>> &variables, std::size_t codePos, std::size_t line, std::string &file, bool showbadcode)
+	inline void insertVariables(std::vector<CodeLine> &code, std::vector<std::pair<std::string, int>> &variables, std::size_t codePos, std::size_t line, std::string &file, bool showbadcode)
 	{
 		std::string buf = lowercase(code[codePos].text);
 		bool inserted = false;
@@ -1275,7 +1275,7 @@ namespace szaman
 	/// <param name="path">Path to file</param>
 	/// <param name="code">Result code</param>
 	/// <returns>True if loaded, false otherwise</returns>
-	bool loadFromFile(std::string path, std::vector<CodeLine> &code)
+	inline bool loadFromFile(std::string path, std::vector<CodeLine> &code)
 	{
 		std::ifstream load(path);
 		if (load.good() == false)
@@ -1307,7 +1307,7 @@ namespace szaman
 	/// </summary>
 	/// <param name="instruction">Instruction</param>
 	/// <returns>Prepared vector</returns>
-	std::vector<std::string> preprocessingDividor(std::string instruction)
+	inline std::vector<std::string> preprocessingDividor(std::string instruction)
 	{
 		std::vector<std::string> res;
 		res.push_back("");
@@ -1334,7 +1334,7 @@ namespace szaman
 	/// <summary>
 	/// List of included files.
 	/// </summary>
-	std::unordered_map<std::string, bool> includedFiles;
+	static std::unordered_map<std::string, bool> includedFiles;
 
 	/// <summary>
 	/// Converts number in specified base to long.
@@ -1344,7 +1344,7 @@ namespace szaman
 	/// <param name="file">Origin file</param>
 	/// <param name="showbadcode">Set true to show show erroneous code in error messages</param>
 	/// <returns>Converted number</returns>
-	unsigned long toLong(std::string &value, std::size_t &line, std::string &file, bool showbadcode)
+	inline unsigned long toLong(std::string &value, std::size_t &line, std::string &file, bool showbadcode)
 	{
 		if (value.length() == 0)
 		{
@@ -1408,7 +1408,7 @@ namespace szaman
 	/// <param name="bytePos">Position in byte code</param>
 	/// <param name="variables">Vector of variables</param>
 	/// <param name="showbadcode">Set true to show show erroneous code in error messages</param>
-	void preprocessing(std::string instruction, std::unordered_map<std::string, std::vector<std::string>> &defines, std::vector<CodeLine> &code, std::size_t &line, std::string &file, std::size_t &pos, std::size_t &bytePos, std::vector<std::pair<std::string, int>> &variables, bool showbadcode)
+	inline void preprocessing(std::string instruction, std::unordered_map<std::string, std::vector<std::string>> &defines, std::vector<CodeLine> &code, std::size_t &line, std::string &file, std::size_t &pos, std::size_t &bytePos, std::vector<std::pair<std::string, int>> &variables, bool showbadcode)
 	{
 		std::vector<std::string> data = preprocessingDividor(instruction);
 		if (data[0] == ".include")
@@ -1531,7 +1531,7 @@ namespace szaman
 	/// <param name="startingPos">Starting position</param>
 	/// <param name="showbadcode">Set true to show show erroneous code in error messages</param>
 	/// <param name="beg0">Set to true if -alwaysbeginat0 was set</param>
-	void assemble(std::vector<CodeLine> &code, std::vector<char> &bytecode, std::size_t startingPos, bool showbadcode, bool beg0)
+	inline void assemble(std::vector<CodeLine> &code, std::vector<char> &bytecode, std::size_t startingPos, bool showbadcode, bool beg0)
 	{
 		std::unordered_map<std::string, uint16_t> labels;
 		std::list<std::pair<std::size_t, uint16_t>> missingLabels;
@@ -1694,7 +1694,7 @@ namespace szaman
 	/// <param name="startingPos">Starting position</param>
 	/// <param name="showbadcode">Set true to show show erroneous code in error messages</param>
 	/// <param name="beg0">Set to true if -alwaysbeginat0 was set</param>
-	void run(std::string &in, std::string &out, std::string &mem, std::string &startingPos, bool showbadcode, bool beg0)
+	inline void run(std::string &in, std::string &out, std::string &mem, std::string &startingPos, bool showbadcode, bool beg0)
 	{
 		std::size_t sPos = 0;
 		try
