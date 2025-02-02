@@ -93,6 +93,7 @@ This section contains descriptions of possible error and warning codes. It is no
 - 024: Expected binary number, got something else instead.
 - 025: Expected hexadecimal number, got something else instead.
 - 044: .org preprocessor instruction would overwrite some other code.
+- 047: Generated code requires memory addresses that exceed declared memory capacity (device memory is too small).
 - 054: Variable declaration without specified size.
 - 055: Attempting to delete variable that does not exist.
 - 404: Can not include specified file.
